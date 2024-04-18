@@ -115,12 +115,6 @@ inline double dot(const vec2 &u, const vec2 &v)
         + u.o[1] * v.o[1];
 }
 
-inline vec2 cross(const vec2 &u, const vec2 &v) 
-{
-    return vec2(u.o[1] * v.o[2] - u.o[2] * v.o[1],
-                u.o[2] * v.o[0] - u.o[0] * v.o[2]);
-}
-
 inline vec2 unit_vector(vec2 v) 
 {
     return v / v.length();

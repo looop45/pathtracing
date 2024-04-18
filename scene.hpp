@@ -1,32 +1,32 @@
 #ifndef SCENE_H
 #define SCENE_H
-
-#include "vec3.hpp"
+ 
+#include "utilities.hpp"
 #include <vector>
-#include "sphere.hpp"
 #include "camera.hpp"
-#include "color.hpp"
 #include "hittable_list.hpp"
 #include "sampler.hpp"
 #include "bvh_tree.hpp"
+#include "texture.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <limits>
-#include <memory>
 #include <vector>
 
 using namespace std;
 
-const int SAMPLES = 1;
+const int SAMPLES = 5;
 const int REFL_SAMPLES = 2;
 const int REFR_SAMPLES = 4;
+const int RAY_DEPTH = 8;
 
 class scene
 {
     public:
         //Scene constructor
-        scene(camera cam, color bgColor, hittable_list surfaces, vector<shared_ptr<light>> lights, int samples, int width, int height)
+        scene(camera cam, shared_ptr<environment_color> bgColor, hittable_list surfaces, hittable_list lights, int samples, int width, int height)
         {
             this->cam = cam;
             this->bgColor = bgColor;
@@ -50,12 +50,11 @@ class scene
 
             for (int j = HEIGHT - 1; j >= 0; j--)
             {
-                //cout << "\rSCANLINES REMAINING: " << j << ' ' << flush;
                 for (int i = 0; i < WIDTH; i++)
                 {
                     //sampler: structure for generating samples for a given pixel.
-                    sampler Sampler = sampler(SAMPLES, REFL_SAMPLES, REFR_SAMPLES, i, j, cam, bgColor);
-                    color pixel_color = Sampler.sample_scene(surfaces, lights); //given a list of surfaces, returns a color for the given pixel that the ray intersects
+                    sampler Sampler = sampler(SAMPLES, i, j, cam, bgColor);
+                    color pixel_color = Sampler.sample_scene(surfaces, lights, RAY_DEPTH); //given a list of surfaces, returns a color for the given pixel that the ray intersects
                     write_color(outFile, pixel_color); //writes the color to the ppm file
                 }
             }
@@ -74,11 +73,13 @@ class scene
         int samples;
 
         color ambientColor;
-        color bgColor;
+        shared_ptr<environment_color> bgColor;
 
         hittable_list surfaces; //all the surfaces in a scene that a ray can hit
-        vector<shared_ptr<light>> lights;
+        hittable_list lights;
 
 };
+
+
 
 #endif

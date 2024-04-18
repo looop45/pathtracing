@@ -1,12 +1,8 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
-#include "vec3.hpp"
-#include "vertex.hpp"
-#include "vec2.hpp"
-#include "ray.hpp"
+#include "utilities.hpp"
 #include <math.h>
-#include "shadingModel.hpp"
 #include "hittable.hpp"
 #include <vector>
 

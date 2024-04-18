@@ -2,6 +2,7 @@
 #define RAY_H
 
 #include "vec3.hpp"
+#include "utilities.hpp"
 
 class ray
 {
@@ -10,6 +11,12 @@ class ray
         //CONSTRUCTORS
         ray() {}
         ray(point3& origin, vec3& direction)
+        {
+            Ro = origin;
+            Rd = direction;
+        }
+
+        ray(const point3& origin, const vec3& direction)
         {
             Ro = origin;
             Rd = direction;

@@ -1,23 +1,13 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include "color.hpp"
-#include "ray.hpp"
+#include "utilities.hpp"
 #include "light.hpp"
-#include "vec3.hpp"
 
-#include <memory>
 #include <vector>
 #include<random>
 
-
 using namespace std;
-
-const double infinity = numeric_limits<double>::infinity();
-// Seed the random number generator
-std::random_device rd;
-std::mt19937 gen(rd());
-std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
 
 struct hit_node 
 {
@@ -29,9 +19,6 @@ struct hit_node
 
     hit_node(hit_record rec, ray r);
     hit_node() {}
-
-    hit_node* get_reflection_ray(int depth, int refl_samples, int refr_samples, hittable& world, double roughness);
-    hit_node* get_transmission_ray(int depth, int refl_samples, int refr_samples, hittable& world, double roughness);
 };
 
 class hit_tree
@@ -127,7 +114,8 @@ color hit_tree::node_solve(hit_node* node)
             point3 p = node->rec.p;
             if (light->isArea)
             {
-                for (int i = 0; i < pow(light->samples, 2); i++)
+                int samples = pow(light->samples, 2);
+                for (int i = 0; i < samples; i++)
                 {
                     //get the light's direction
                     vec3 light_direction = unit_vector(light->get_light_direction(node->rec.p));
@@ -138,9 +126,10 @@ color hit_tree::node_solve(hit_node* node)
                     {
                         color diffuse_lobe = node->rec.material->compute_diffuse(node->rec.normal, node->r.direction(), light_direction, light->col, node->rec.uv);
                         color spec_lobe = node->rec.material->compute_spec(node->rec.normal, node->r.direction(), light_direction, light->col);
-                        out += (light->intensity(p) * (diffuse_lobe + spec_lobe)) / pow(light->samples, 2);
+                        out += (light->intensity(p) * (diffuse_lobe + spec_lobe));
                     }
                 }
+                out /= samples;
                 
             }
             else
@@ -212,7 +201,7 @@ hit_node* hit_node::get_transmission_ray(int depth, int refl_samples, int refr_s
     vec3 T_dir = (nR * (dot(N, I)) - sqrt(1-pow(nR, 2) * (1 - pow(dot(N,I),2)))) * N - nR * I;
 
     //refraction roughness
-    vec3 jitter(distribution(gen), distribution(gen), distribution(gen));
+    vec3 jitter(random_centered_double(), random_centered_double(), random_centered_double());
     T_dir += jitter * rough;
 
     ray T = ray(this->rec.p, T_dir);
@@ -266,7 +255,7 @@ hit_node* hit_node::get_reflection_ray(int depth, int refl_samples, int refr_sam
     {
         return nullptr;
     }
-    vec3 jitter(distribution(gen), distribution(gen), distribution(gen));
+    vec3 jitter(random_centered_double(), random_centered_double(), random_centered_double());
     //jitter = vec3(0,0,0);
 
     vec3 d = unit_vector(this->r.direction() + jitter * rough);

@@ -1,11 +1,9 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "vec3.hpp"
-#include "vec2.hpp"
-#include "ray.hpp"
+#include "utilities.hpp"
 #include <math.h>
-#include "shadingModel.hpp"
+#include "material.hpp"
 #include "hittable.hpp"
 #include "hittable_list.hpp"
 #include "polygon.hpp"
@@ -20,12 +18,12 @@ using namespace std;
 class mesh : public hittable_list
 {
     public:
-        mesh(const char* path, point3 pos, double scale, shadingModel* material)
+        mesh(const char* path, point3 pos, double scale, shared_ptr<material> mat)
         {
             this->path = path;
             this->pos = pos;
             this->scale = scale;
-            this->material = material;
+            this->mat = mat;
             this->objects = this->read_file();
         }
 
@@ -33,7 +31,7 @@ class mesh : public hittable_list
         const char* path;
         point3 pos;
         double scale;
-        shadingModel* material;
+        shared_ptr<material> mat;
 
         vector<shared_ptr<hittable>> read_file();
 
@@ -114,7 +112,7 @@ vector<shared_ptr<hittable>> mesh::read_file()
                     face_verts.push_back(make_shared<vertex>(temp_points.at(vertexIndex[i]-1) * scale + pos, uvs.at(uvIndex[i]-1), normals.at(normalIndex[i]-1)));
                 }
 
-                faces.push_back(make_shared<polygon>(face_verts, this->material));
+                faces.push_back(make_shared<polygon>(face_verts, this->mat));
 
             }
         }

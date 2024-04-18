@@ -1,6 +1,8 @@
 #ifndef VEC3_H
 #define VEC3_H
 
+#include "utilities.hpp"
+
 #include <cmath>
 #include <iostream>
 
@@ -74,7 +76,14 @@ class vec3
 using point3 = vec3;
 using color = vec3;
 
+
 //OTHER UTILITIES
+
+inline vec3 random_vec3()
+{
+    return vec3(random_double(), random_double(), random_double());
+}
+
 inline ostream& operator<<(ostream &out, const vec3 &v)
 {
     return out << v.o[0] << ' ' << v.o[1] << ' ' << v.o[2];
@@ -85,9 +94,24 @@ inline vec3 operator+(const vec3 &u, const vec3 &v)
     return vec3(u.o[0] + v.o[0], u.o[1] + v.o[1], u.o[2] + v.o[2]);
 }
 
+inline vec3 operator+(vec3 &u, double &v) 
+{
+    return vec3(u.o[0] + v, u.o[1] + v, u.o[2] + v);
+}
+
 inline vec3 operator-(const vec3 &u, const vec3 &v) 
 {
     return vec3(u.o[0] - v.o[0], u.o[1] - v.o[1], u.o[2] - v.o[2]);
+}
+
+inline vec3 operator-(double &u, vec3 &v) 
+{
+    return vec3(u - v.o[0], u - v.o[1], u - v.o[2]);
+}
+
+inline vec3 operator-(const vec3 &u, double &v) 
+{
+    return vec3(u.o[0] - v, u.o[1] - v, u.o[2] - v);
 }
 
 inline vec3 operator*(const vec3 &u, const vec3 &v) 
@@ -158,6 +182,15 @@ inline vec3 unit_vector(vec3 v)
     return v / v.length();
 }
 
+inline vec3 spherical_to_cartesian(double theta, double phi)
+{
+    auto x = sin(theta) * cos(phi);
+    auto y = cos(theta);
+    auto z = sin(theta) * sin(phi);
+
+    return vec3(x,y,z);
+}
+
 inline double maximize(vec3 v) 
 {
     if (abs(v.x()) > abs(v.y()) && abs(v.x()) > abs(v.z()))
@@ -184,5 +217,23 @@ inline vec3 epsilon(vec3 v)
 
     return out;
 }
+
+inline vec3 random_cosine_direction() {
+    auto r1 = random_double();
+    auto r2 = random_double();
+
+    auto phi = 2*pi*r1;
+    auto x = cos(phi)*sqrt(r2);
+    auto y = sin(phi)*sqrt(r2);
+    auto z = sqrt(1-r2);
+
+    return vec3(x, y, z);
+}
+
+bool near_zero(vec3& e) {
+        // Return true if the vector is close to zero in all dimensions.
+        auto s = 1e-8;
+        return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+    }
 
 #endif

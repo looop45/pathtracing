@@ -1,28 +1,28 @@
 #ifndef QUAD_H
 #define QUAD_H
 
-#include "vec3.hpp"
-#include "vec2.hpp"
-#include "ray.hpp"
+#include "utilities.hpp"
 #include <math.h>
-#include "shadingModel.hpp"
+#include "material.hpp"
 #include "hittable.hpp"
 
 class quad : public hittable
 {
     public:
-        quad(point3 Q, vec3 u, vec3 v, shadingModel* material)
+        quad(point3 Q, vec3 u, vec3 v, shared_ptr<material> mat)
         {
             this->Q = Q;
             this->u = u;
             this->v = v;
 
-            this->material = material;
+            this->mat = mat;
 
             auto n = cross(u,v);
             normal = unit_vector(n);
             this->w = n / dot(n,n);
             D = dot(normal, Q);
+
+            area = n.length();
 
             this->calculate_extents();
         }
@@ -41,9 +41,28 @@ class quad : public hittable
 
         quad() {}
 
+        double pdf_value(const point3& origin, const vec3& v) override 
+        {
+            hit_record rec;
+            if (!this->hit(ray(origin, v), 0, infinity, rec))
+                return 0;
+
+            auto distance_squared = rec.t * rec.t * v.length_squared();
+            auto cosine = fabs(dot(v, rec.normal) / v.length());
+
+            return distance_squared / (cosine * area);
+        }
+
+        vec3 random(const point3& origin) override 
+        {
+            auto p = Q + (random_double() * u) + (random_double() * v);
+            return p - origin;
+        }
+
         vec3 u;
         vec3 v;
         point3 Q;
+        double area;
 
 
         bool hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec) override;
@@ -53,7 +72,7 @@ class quad : public hittable
         vec3 normal;
         double D;
         vec3 w; 
-        shadingModel* material;
+        shared_ptr<material> mat;
 
 
 };
@@ -83,7 +102,7 @@ bool quad::hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec)
     rec.t = t;
     rec.uv = vec2(alpha, 1-beta);
     rec.p = intersection;
-    rec.material = material;
+    rec.mat = mat;
     rec.set_face_normal(cam_ray, normal);
 
     return true;

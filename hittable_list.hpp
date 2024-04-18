@@ -23,7 +23,7 @@ class hittable_list : public hittable {
         point3 get_lower_extent();
 
     public:
-        std::vector<shared_ptr<hittable>> objects;
+        std::vector<shared_ptr<hittable> > objects;
 
         int count()
         {

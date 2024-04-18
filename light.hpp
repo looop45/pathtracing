@@ -6,10 +6,9 @@
 
 class light
 {
-
     public:
-        virtual vec3 get_light_direction(point3 P) {}
-        virtual float intensity(point3 P) {}
+        virtual vec3 get_light_direction(point3 P) = 0;
+        virtual float intensity(point3 P) = 0;
         color col = color(1,1,1);
 
         light() {}

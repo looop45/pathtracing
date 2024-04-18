@@ -1,20 +1,19 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
-#include "vec3.hpp"
-#include "ray.hpp"
+#include "utilities.hpp"
 #include <math.h>
-#include "shadingModel.hpp"
+#include "material.hpp"
 #include "hittable.hpp"
 
 class sphere : public hittable
 {
     public:
-        sphere(vec3 c, double r, shadingModel* material) 
+        sphere(vec3 c, double r, shared_ptr<material> mat) 
         {
             s_center = c;
             s_radius = r;
-            this->material = material;
+            this->mat = mat;
             this->calculate_extents();
         }
 
@@ -35,7 +34,7 @@ class sphere : public hittable
     private:
         point3 s_center;
         double s_radius;
-        shadingModel* material;
+        shared_ptr<material> mat;
 
 };
 
@@ -65,7 +64,6 @@ bool sphere::hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec
     vec3 normal = (rec.p - s_center) / s_radius;
 
     //uv coordinates
-    const double pi = 3.1415;
     auto theta = acos(-normal.y());
     auto phi = atan2(-normal.z(), normal.x()) + pi;
 
@@ -75,7 +73,7 @@ bool sphere::hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec
 
     rec.set_face_normal(cam_ray, normal);
     //rec.normal = vec3(0,1,0);
-    rec.material = material;
+    rec.mat = mat;
 
     return true;
 }

@@ -1,23 +1,20 @@
 #ifndef BOUNDING_H
 #define BOUNDING_H
 
-#include "vec3.hpp"
+#include "utilities.hpp"
 #include "hittable.hpp"
-#include "shadingModel.hpp"
+#include "material.hpp"
 
 class bounding_volume : public hittable
 {
     public:
         bounding_volume() {this->lower_extent = point3(0,0,0); this->upper_extent = point3(0,0,0); }
         bounding_volume(point3 lower_extent, point3 upper_extent) {this->lower_extent = lower_extent; this->upper_extent = upper_extent;}
-        //bounding_volume(point3 lower_extent, point3 upper_extent, shadingModel material) {this->lower_extent = lower_extent; this->upper_extent = upper_extent; this->material = material;}
 
         bool hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec) override;
         bool hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec, color c);
         void calculate_extents() override {} 
 
-    private:
-        //shadingModel material;
 };
 
 bool bounding_volume::hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec)
@@ -47,8 +44,6 @@ bool bounding_volume::hit(const ray& cam_ray, double t_min, double t_max, hit_re
     if (tymax < tmax)
     {
         tmax = tymax;
-        //normal = vec3(0,-1,0);
-
     }
 
     float tzmin = (lower_extent.z() - cam_ray.origin().z()) / cam_ray.direction().z();
@@ -71,14 +66,10 @@ bool bounding_volume::hit(const ray& cam_ray, double t_min, double t_max, hit_re
     if (tzmax < tmax)
     {
         tmax = tzmax;
-        //normal = vec3(0,0,-1);
-
     }
     rec.t = tmin;
     rec.p = cam_ray.at(rec.t);
     rec.set_face_normal(cam_ray, normal);
-    //rec.material = shadingModel(0.8, 0.2, 0.25, rec.normal, color(1,1,1), color(1.0, 1.0, 1.0), 32, 0, 0, 0);
-
     rec.d = cam_ray.direction();
 
     return true;

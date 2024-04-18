@@ -4,7 +4,6 @@
 #include "hittable.hpp"
 #include "hittable_list.hpp"
 #include "bounding_volume.hpp"
-#include "shadingModel.hpp"
 
 #include <memory>
 #include <vector>

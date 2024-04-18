@@ -1,12 +1,10 @@
 #ifndef POLY_H
 #define POLY_H
 
-#include "vec3.hpp"
-#include "vertex.hpp"
-#include "vec2.hpp"
-#include "ray.hpp"
+
+#include "utilities.hpp"
 #include <math.h>
-#include "shadingModel.hpp"
+#include "material.hpp"
 #include "hittable.hpp"
 #include <vector>
 #include "vertex.hpp"
@@ -19,9 +17,9 @@ const int SHADE_SMOOTH = 0;
 class polygon : public hittable
 {
     public:
-        polygon(vector<shared_ptr<vertex>> vertices, shadingModel* material) 
+        polygon(vector<shared_ptr<vertex>> vertices, shared_ptr<material> mat) 
         {
-            this->material = material;
+            this->mat = mat;
             this->normal = compute_normal(vertices);
             this->distance = compute_dist(vertices.at(0), normal);
             this->vertices = vertices;
@@ -31,7 +29,7 @@ class polygon : public hittable
         bool hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec) override;
 
     private:
-        shadingModel* material;
+        shared_ptr<material> mat;
         point3 normal;
         double distance;
         vector<shared_ptr<vertex>> vertices;
@@ -110,7 +108,7 @@ bool polygon::hit(const ray& cam_ray, double t_min, double t_max, hit_record& re
     rec.d = cam_ray.direction();
     rec.t = t;
     rec.p = Q;
-    rec.material = material;
+    rec.mat = mat;
     rec.uv = alpha * vertices.at(0)->uv + beta * vertices.at(1)->uv + gamma * vertices.at(2)->uv;
 
     return true;

@@ -4,6 +4,8 @@
 #include "ray.hpp"
 #include "vec2.hpp"
 
+class material;
+
 class hit_record 
 {
     public:
@@ -11,7 +13,7 @@ class hit_record
         vec3 normal;
         double t;
         vec2 uv;
-        shadingModel* material;
+        shared_ptr<material> mat;
         bool front_face;
         vec3 d;
         int id;
@@ -28,6 +30,16 @@ class hit_record
 class hittable {
     public:
         virtual bool hit(const ray& cam_ray, double t_min, double t_max, hit_record& rec) = 0;
+
+        virtual double pdf_value(const point3& o, const vec3& v)
+        {
+            return 0.0;
+        }
+
+        virtual vec3 random(const vec3& o)
+        {
+            return vec3(1, 0, 0);
+        }
 
         point3 get_lower_extent()  { return this->lower_extent; }
         point3 get_upper_extent()  { return this->upper_extent; } 
