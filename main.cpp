@@ -23,8 +23,8 @@ using namespace std;
 
 int main()
 {
-    const int WIDTH = 512;
-    const int HEIGHT = 512;
+    const int WIDTH = 100;
+    const int HEIGHT = 100;
 
     //camera
     point3 camera_org(0,0,1);
@@ -76,6 +76,9 @@ int main()
     auto beginTime = chrono::high_resolution_clock::now();
     scene1.traceScene("scene");
     auto endTime = chrono::high_resolution_clock::now();
+
+    string ad;
+    //cin >> ad;
 
     auto duration = chrono::duration_cast<chrono::seconds>(endTime - beginTime).count();
     cout << "Execution time: " << duration << " sec" << endl;

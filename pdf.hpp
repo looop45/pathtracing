@@ -11,13 +11,13 @@ class pdf {
     virtual ~pdf() {}
 
     virtual double value(const vec3& wi) const = 0;
-    virtual vec3 generate() const = 0;
+    virtual vec3 generate() = 0;
 };
 
 class cosine_pdf : public pdf 
 {
   public:
-    cosine_pdf(const vec3& w) { uvw.build_from_w(w); }
+     cosine_pdf(const vec3& w) { uvw.build_from_w(w); }
 
     //calculates pdf scattering value
     double value(const vec3& wi) const override {
@@ -26,7 +26,7 @@ class cosine_pdf : public pdf
     }
 
     //generates ray in random cosine weighted hemisphere on point normal.
-    vec3 generate() const override {
+    vec3 generate() override {
         return uvw.local_to_world(random_cosine_direction());
     }
 
@@ -36,11 +36,10 @@ class cosine_pdf : public pdf
 
 class ggx_pdf : public pdf {
   public:
-    ggx_pdf(vec3& wo, double roughness, scatter_record& srec)
+    ggx_pdf(vec3& wo, double roughness)
     {
       this->wo = wo;
       a2 = roughness * roughness;
-      this->srec = srec;
     }
 
     //D term
@@ -58,7 +57,7 @@ class ggx_pdf : public pdf {
     }
 
     //sampling direction of NDF for new microfacet normal (half vector)
-    vec3 generate() const override
+    vec3 generate() override
     {
       double e0 = random_double();
       double e1 = random_double();
@@ -75,10 +74,9 @@ class ggx_pdf : public pdf {
     }
 
   private:
-    scatter_record& srec;
     const vec3 wg = vec3(0,1,0); //geometric normal
     vec3 wm;
-    vec3& wo;
+    vec3 wo;
     double a2; //roughness squared
     double D_val;
 
@@ -95,7 +93,7 @@ class hittable_pdf : public pdf {
         return objects.pdf_value(origin, direction);
     }
 
-    vec3 generate() const override {
+    vec3 generate() override {
         return objects.random(origin);
     }
 
@@ -106,7 +104,7 @@ class hittable_pdf : public pdf {
 
 class mixture_pdf : public pdf {
   public:
-    mixture_pdf(shared_ptr<pdf> p0, shared_ptr<pdf> p1, ) {
+    mixture_pdf(shared_ptr<pdf> p0, shared_ptr<pdf> p1) {
         p[0] = p0;
         p[1] = p1;
     }
@@ -115,7 +113,7 @@ class mixture_pdf : public pdf {
         return 0.5 * p[0]->value(direction) + 0.5 * p[1]->value(direction);
     }
 
-    vec3 generate() const override {
+    vec3 generate() override {
         if (random_double() < 0.5)
             return p[0]->generate();
         else

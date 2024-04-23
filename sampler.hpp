@@ -31,7 +31,7 @@ class sampler
         }
 
         color sample_scene(hittable& world, hittable_list& lights, int depth);
-        color ray_color(const ray& r, int depth, hittable& world, hittable_list& lights);
+        color ray_color(ray& r, int depth, hittable& world, hittable_list& lights);
 
     private:
 
@@ -73,7 +73,7 @@ color sampler::sample_scene(hittable& world, hittable_list& lights, int depth)
     return clamp(color_total/sample_total);
 }
 
-color sampler::ray_color(const ray& r, int depth, hittable& world, hittable_list& lights)
+color sampler::ray_color(ray& r, int depth, hittable& world, hittable_list& lights)
         {
             //reached depth limit
             if (depth <= 0)
@@ -87,6 +87,12 @@ color sampler::ray_color(const ray& r, int depth, hittable& world, hittable_list
             
             if (world.hit(r, 0, 5, rec))
             {
+                shared_ptr<solid_color> whitecol = make_shared<solid_color>(1,1,1);
+
+                shared_ptr<lambertian> white = make_shared<lambertian>(whitecol);
+
+                srec.pdf_ptr = make_shared<sphere>(point3(0,0,-0.5), 0.5, white);
+
                 if (!rec.mat->scatter(r, rec, srec))
                 {
                     color_from_emission = rec.mat->emitted(r, rec, rec.uv[0], rec.uv[1], rec.p);
@@ -101,10 +107,11 @@ color sampler::ray_color(const ray& r, int depth, hittable& world, hittable_list
                 //scattered = ray(rec.p, mixed_pdf.generate());
                 //auto pdf_val = mixed_pdf.value(scattered.direction());
                 
-                color scatter_color = (srec.attenuation * srec.brdf * ray_color(srec.wi, depth-1, world, lights)) / srec.pdf_val;
-
+                color scatter_color = (srec.attenuation * srec.brdf * ray_color(srec.scattered_ray, depth-1, world, lights)) / srec.pdf_val;
+       
                 return scatter_color + color_from_emission;
             }
+
 
             //no hit, do gradient bg
             return bg->value(r.direction());

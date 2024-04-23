@@ -24,6 +24,12 @@ class vec3
             o[1] = o2;
             o[2] = o3;
         }
+        vec3(double val)
+        {
+            o[0] = val;
+            o[1] = val;
+            o[2] = val;
+        }
 
         //GETTERS
         double x() const {return o[0];}
@@ -124,12 +130,12 @@ inline vec3 operator/(const vec3 &u, const vec3 &v)
     return vec3(u.o[0] / v.o[0], u.o[1] / v.o[1], u.o[2] / v.o[2]);
 }
 
-inline vec3 operator*(double t, const vec3 &v) 
+inline vec3 operator*(const double t, const vec3 &v) 
 {
     return vec3(t*v.o[0], t*v.o[1], t*v.o[2]);
 }
 
-inline vec3 operator*(const vec3 &v, double t) 
+inline vec3 operator*(const vec3 &v, const double t) 
 {
     return t * v;
 }
@@ -182,7 +188,7 @@ inline vec3 unit_vector(vec3 v)
     return v / v.length();
 }
 
-inline vec3 spherical_to_cartesian(double theta, double phi)
+inline const vec3 spherical_to_cartesian(double theta, double phi)
 {
     auto x = sin(theta) * cos(phi);
     auto y = cos(theta);
@@ -228,6 +234,11 @@ inline vec3 random_cosine_direction() {
     auto z = sqrt(1-r2);
 
     return vec3(x, y, z);
+}
+
+inline vec3 lerp(vec3 a, vec3 b, double factor)
+{
+    return a + factor * (b - a);
 }
 
 bool near_zero(vec3& e) {

@@ -38,8 +38,6 @@ inline double random_centered_double()
     return distribution(generator);
 }
 
-
-
 //Common Headers
 #include "ray.hpp"
 #include "vec3.hpp"

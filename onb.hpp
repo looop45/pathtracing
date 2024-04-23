@@ -24,7 +24,7 @@ class onb {
 
     vec3 world_to_local(const vec3& a) const
     {
-      return a.x()/u() + a.y()/v() + a.z()/w();
+      return a.x() * inv[0] + a.y()*inv[1] + a.z()*inv[2];
     }
 
     //
@@ -36,10 +36,23 @@ class onb {
         axis[0] = u;
         axis[1] = v;
         axis[2] = unit_w;
+        calculate_inverse();
+    }
+
+    void calculate_inverse()
+    {
+      for (int i = 0; i < 4; i++)
+      {
+        for (int j = 0; j < 4; j++)
+        {
+          inv[i][j] = axis[j][i];
+        }
+      }
     }
 
   public:
     vec3 axis[3];
+    vec3 inv[3];
 };
 
 
