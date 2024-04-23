@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <stdio.h>
+#include <thread>
 //#include "hit_tree.hpp"
 #include "camera.hpp"
 #include "hittable_list.hpp"
@@ -51,6 +52,8 @@ color sampler::sample_scene(hittable& world, hittable_list& lights, int depth)
     int sample_total = pow(samples, 2);
     float pixel_resolution =  1 / (float)samples;
 
+    int thread_count = thread::hardware_concurrency();
+
     color color_total = color(0,0,0);
 
     //divide pixel by sample resolution, cast rays through jittered
@@ -74,47 +77,41 @@ color sampler::sample_scene(hittable& world, hittable_list& lights, int depth)
 }
 
 color sampler::ray_color(ray& r, int depth, hittable& world, hittable_list& lights)
+{
+    //reached depth limit
+    if (depth <= 0)
+    {
+        return color(0,0,0);
+    }
+
+    hit_record rec;
+    scatter_record srec;
+    color color_from_emission;
+    
+    if (world.hit(r, 0, 5, rec))
+    {
+        if (!rec.mat->scatter(r, rec, srec))
         {
-            //reached depth limit
-            if (depth <= 0)
-            {
-                return color(0,0,0);
-            }
-
-            hit_record rec;
-            scatter_record srec;
-            color color_from_emission;
-            
-            if (world.hit(r, 0, 5, rec))
-            {
-                shared_ptr<solid_color> whitecol = make_shared<solid_color>(1,1,1);
-
-                shared_ptr<lambertian> white = make_shared<lambertian>(whitecol);
-
-                srec.pdf_ptr = make_shared<sphere>(point3(0,0,-0.5), 0.5, white);
-
-                if (!rec.mat->scatter(r, rec, srec))
-                {
-                    color_from_emission = rec.mat->emitted(r, rec, rec.uv[0], rec.uv[1], rec.p);
-                    return color_from_emission;
-                }
-                //recursively calculate path color
-
-                //auto p0 = make_shared<hittable_pdf>(*lights.objects.at(0), rec.p);
-                //auto p1 = make_shared<cosine_pdf>(rec.normal);
-                //mixture_pdf mixed_pdf(p0, p1);
-
-                //scattered = ray(rec.p, mixed_pdf.generate());
-                //auto pdf_val = mixed_pdf.value(scattered.direction());
-                
-                color scatter_color = (srec.attenuation * srec.brdf * ray_color(srec.scattered_ray, depth-1, world, lights)) / srec.pdf_val;
-       
-                return scatter_color + color_from_emission;
-            }
-
-
-            //no hit, do gradient bg
-            return bg->value(r.direction());
+            color_from_emission = rec.mat->emitted(r, rec, rec.uv[0], rec.uv[1], rec.p);
+            return color_from_emission;
         }
+        //recursively calculate path color
+
+        //auto p0 = make_shared<hittable_pdf>(*lights.objects.at(0), rec.p);
+        //auto p1 = make_shared<cosine_pdf>(rec.normal);
+        //mixture_pdf mixed_pdf(p0, p1);
+
+        //scattered = ray(rec.p, mixed_pdf.generate());
+        //auto pdf_val = mixed_pdf.value(scattered.direction());
+        color next_ray = ray_color(srec.scattered_ray, depth-1, world, lights);
+        color scatter_color = (srec.attenuation * srec.brdf * next_ray) / srec.pdf_val;
+
+        return scatter_color + color_from_emission;
+    }
+
+
+    //no hit, do gradient bg
+    return bg->value(r.direction());
+}
 
 #endif

@@ -23,8 +23,8 @@ using namespace std;
 
 int main()
 {
-    const int WIDTH = 100;
-    const int HEIGHT = 100;
+    const int WIDTH = 256;
+    const int HEIGHT = 256;
 
     //camera
     point3 camera_org(0,0,1);
@@ -42,6 +42,9 @@ int main()
 
     //make colors
     shared_ptr<solid_color> whitecol = make_shared<solid_color>(1,1,1);
+    shared_ptr<solid_color> blackcol = make_shared<solid_color>(0,0,0);
+    shared_ptr<solid_color> point5col = make_shared<solid_color>(0.001,0.5,0.5);
+
     shared_ptr<solid_color> redcol = make_shared<solid_color>(1,0,0);
     shared_ptr<solid_color> greencol = make_shared<solid_color>(0,1,0);
 
@@ -50,11 +53,12 @@ int main()
     shared_ptr<lambertian> white = make_shared<lambertian>(whitecol);
     shared_ptr<lambertian> red = make_shared<lambertian>(redcol);
     shared_ptr<lambertian> green = make_shared<lambertian>(greencol);
+    shared_ptr<specular_CT> spec = make_shared<specular_CT>(point5col, whitecol, blackcol);
 
     shared_ptr<emissive> emit = make_shared<emissive>(bgcol, 30);
 
     //add objects
-    //objects.add(make_shared<sphere>(point3(0,0,-0.5), 0.5, white));
+    objects.add(make_shared<sphere>(point3(0,0,-0.5), 0.5, spec));
     //objects.add(make_shared<quad>(point3(-0.25, 0.5, 1), vec3(0.5,0,0), vec3(0,0.34,-0.5), emit));
     //objects.add(make_shared<quad>(point3(-2, -0.5, 0.25), vec3(4,0,0), vec3(0,0,-2.25), red));
 
@@ -62,19 +66,19 @@ int main()
     vec3 transform(0,-1,-1);
     float size = 1;
     shared_ptr<quad> light = make_shared<quad>(point3(-0.25, 0.99, -0.5), vec3(0.5,0,0), vec3(0,0,-0.5), emit);
-    objects.add(light);
-    lights.add(light);
+    //objects.add(light);
+    //lights.add(light);
     //lights.add()
-    objects.add(make_shared<mesh>("c_white.obj", transform, size, white));
+    //objects.add(make_shared<mesh>("c_white.obj", transform, size, white));
     objects.add(make_shared<mesh>("c_green.obj", transform, size, green));
     objects.add(make_shared<mesh>("c_red.obj", transform, size, red));
 
 
 
-    scene scene1 = scene(cam, black_env, objects, lights, 8, WIDTH, HEIGHT);
+    scene scene1 = scene(cam, env, objects, lights, 8, WIDTH, HEIGHT);
 
     auto beginTime = chrono::high_resolution_clock::now();
-    scene1.traceScene("scene");
+    scene1.traceScene("test");
     auto endTime = chrono::high_resolution_clock::now();
 
     string ad;

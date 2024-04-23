@@ -39,21 +39,26 @@ class ggx_pdf : public pdf {
     ggx_pdf(vec3& wo, double roughness)
     {
       this->wo = wo;
-      a2 = roughness * roughness;
+      double a = roughness * roughness;
+      a2 = a * a;
     }
 
     //D term
     const double D()
     {
-      double denom_sqrt = ((wgdotwm * wgdotwm) * (a2-1) + 1);
-      D_val = a2 / abs(pi * denom_sqrt * denom_sqrt);
+      double wgdotwm2 = wgdotwm * wgdotwm;
+      double b = (wgdotwm2 * (a2 - 1.0) + 1.0);
+      //double denom_sqrt = ((wgdotwm * wgdotwm) * (a2-1.0) + 1.0);
+      //D_val = a2 / (pi * denom_sqrt * denom_sqrt);
+      D_val = a2 * inv_pi / (b*b);
       return D_val;
     }
 
     //pdf of ggx given importance sampling of NDF
     double value(const vec3 &wi) const override 
     {
-      return (D_val * wgdotwm)/(4 * dot(wo, wm));
+      //return (D_val * wgdotwm)/(4 * dot(wo, wm));
+      return 1;
     }
 
     //sampling direction of NDF for new microfacet normal (half vector)
@@ -62,7 +67,7 @@ class ggx_pdf : public pdf {
       double e0 = random_double();
       double e1 = random_double();
 
-      auto theta = acos(sqrt((1 - e0) / ((a2 - 1) * e0 + 1)));
+      auto theta = acos(sqrt((1.0 - e0) / ((a2 - 1.0) * e0 + 1.0)));
       auto phi = pi * pi * e1;
 
       //Spherical to cartesian coordinates
@@ -70,7 +75,7 @@ class ggx_pdf : public pdf {
       wgdotwm = dot(wg, wm);
 
       //convert to cartesian
-      return spherical_to_cartesian(theta, phi);
+      return wm;
     }
 
   private:

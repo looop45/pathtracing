@@ -17,7 +17,7 @@ struct scatter_record
         ray scattered_ray;
         vec3 wm;
         vec3 wi;
-        shared_ptr<hittable> pdf_ptr;
+        shared_ptr<pdf> pdf_ptr;
         color brdf;
         double pdf_val;
         onb uvw;
@@ -51,19 +51,19 @@ class lambertian : public material
             return color(inv_pi * cos_theta);
         }
 
-        bool scatter(const ray& r_in, const hit_record& rec, scatter_record& srec) 
+        bool scatter(const ray& r_in, const hit_record& rec, scatter_record& srec) override
         {
-            scatter_record* scat_ptr = &srec;
+            //scatter_record* scat_ptr = &srec;
             srec.attenuation = albedo->value(rec.uv[0], rec.uv[1]);
             //cosine_pdf test(rec.normal);
             // cosine_pdf test2(rec.normal);
             //pdf* ptr = new cosine_pdf(rec.normal);
             //cosine_pdf thispdf(rec.normal);
-            //srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
+            srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
 
-            //srec.scattered_ray = ray(rec.p, srec.pdf_ptr->generate());
-            srec.scattered_ray = ray(rec.p, vec3(0,1,0));
-
+            srec.scattered_ray = ray(rec.p, srec.pdf_ptr->generate());
+            //srec.scattered_ray = ray(rec.p, vec3(0,1,0));
+            srec.pdf_val = srec.pdf_ptr->value(srec.scattered_ray.direction());
             srec.brdf = brdf(r_in, rec, srec.scattered_ray);
             return true;
         }        
@@ -93,76 +93,79 @@ class emissive : public material
         double intensity = 1;
 };
 
-/*
+
 //Cook-Torrance specular model
 class specular_CT : public material
 {
-    specular_CT(shared_ptr<texture> rough, shared_ptr<texture> basecol, shared_ptr<texture> metal)
-    {
-        roughness = rough;
-        basecolor = basecol;
-        metalness = metal;
-    }
-
-    specular_CT(double rough) : roughness(make_shared<solid_color>(color(rough, rough, rough))) {}
-
-    color brdf(const hit_record& rec, vec3& wm, vec3& wo, vec3& wi, double a2, double D) const 
-    {
-        double widotwm = dot(wi, wm);
-        //if not in the hemisphere, contribution is zero
-        if (dot(wg, wi) < 0 || widotwm < 1)
+    public:
+        specular_CT(shared_ptr<texture> rough, shared_ptr<texture> basecol, shared_ptr<texture> metal)
         {
-            return color(0,0,0);
+            roughness = rough;
+            basecolor = basecol;
+            metalness = metal;
         }
 
-        double dotNL = dot(wg, wi);
-        double dotNV = dot(wg, wo);
+        specular_CT(double rough) : roughness(make_shared<solid_color>(color(rough, rough, rough))) {}
 
-        //schlick fresnel term
-        color f0_dielectric(0.04, 0.04, 0.04);
-        color f0 = lerp(f0_dielectric, basecolor->value(rec.uv[0], rec.uv[1]), metalness->value(rec.uv[0], rec.uv[1])[0]);
-        color F = f0 + (color(1,1,1) - f0)*(1-pow(dotNV, 5));
+        color brdf(const hit_record& rec, vec3& wm, vec3& wo, vec3& wi, double a2, double D) const 
+        {
+            double widotwm = dot(wi, wm);
+            //if not in the hemisphere, contribution is zero
+            if (dot(wg, wi) < 0 || widotwm > 1)
+            {
+                return color(0,0,0);
+            }
 
-        //Smith shadow masking
-        double denomA = dotNV * sqrt(a2 + (1 - a2) * dotNL * dotNL);
-        double denomB = dotNL * sqrt(a2 + (1 - a2) * dotNV * dotNV);
-        double G = 2 * dotNL * dotNV / (denomA + denomB);
+            double dotNL = dot(wg, wi);
+            double dotNV = dot(wg, wo);
 
-        return (F * G * D) / (4 * dot(wi, wg) * dot(wo, wg));
-    }
+            //schlick fresnel term
+            color f0_dielectric(0.04, 0.04, 0.04);
+            color f0 = lerp(f0_dielectric, basecolor->value(rec.uv[0], rec.uv[1]), metalness->value(rec.uv[0], rec.uv[1])[0]);
+            color F = f0 + (color(1,1,1) - f0)*pow(1-dotNV, 5);
+            //color F(1);
 
-    bool scatter(const ray& r_in, hit_record& rec, scatter_record srec) 
-    {
-        srec.attenuation = color(1,1,1);
-        srec.uvw.build_from_w(rec.normal);
+            //Smith shadow masking
+            double denomA = dotNV * sqrt(a2 + (1 - a2) * dotNL * dotNL);
+            double denomB = dotNL * sqrt(a2 + (1 - a2) * dotNV * dotNV);
+            double G = 2 * dotNL * dotNV / (denomA + denomB);
+            //double G = 1;
 
-        vec3 wo = srec.uvw.world_to_local(r_in.direction());
+            return F;
+            //return (F*D) / (4 * max(dot(wg, wi), 0.001) * max(dot(wg, wo), 0.001));
+        }
 
-        double a = roughness->value(rec.uv[0], rec.uv[1])[0];
+        bool scatter(const ray& r_in, const hit_record& rec, scatter_record& srec) override
+        {
+            srec.attenuation = color(1,1,1);
+            srec.uvw.build_from_w(rec.normal);
 
-        srec.pdf_ptr = make_shared<ggx_pdf>(wo, a);
-        vec3 wm = srec.pdf_ptr->generate();
+            vec3 wo = srec.uvw.world_to_local(r_in.direction());
 
-        //reflect
-        vec3 wi = 2 * dot(wo, wm) * wm - wo;
-        srec.wi = srec.uvw.local_to_world(srec.wi);
+            double a = roughness->value(rec.uv[0], rec.uv[1])[0];
 
-        srec.scattered_ray = ray(rec.p, srec.wi);
+            srec.pdf_ptr = make_shared<ggx_pdf>(wo, a);
+            vec3 wm = srec.pdf_ptr->generate();
 
-        //D term
-        //ggx_pdf *ggx = static_cast<ggx_pdf*>(srec.pdf_ptr);
-        //double D = ggx->D();
-        double D = 1.0;
+            //reflect
+            vec3 wi = wo - 2 * wm * dot(wo, wm);
+            srec.wi = srec.uvw.local_to_world(wi);
 
-        //pdf_val
-        srec.pdf_val = srec.pdf_ptr->value(srec.wi);
+            srec.scattered_ray = ray(rec.p, srec.wi);
 
-        //brdf
-        srec.brdf = this->brdf(rec, wm, wo, wi, a*a, D);
+            //D term
+            shared_ptr<ggx_pdf> ggx = dynamic_pointer_cast<ggx_pdf>(srec.pdf_ptr);
+            double D = ggx->D();
+            //double D = 1;
 
-        //pdf value
-        return true;
-    }
+            //pdf_val
+            srec.pdf_val = srec.pdf_ptr->value(srec.wi);
+
+            //brdf
+            srec.brdf = this->brdf(rec, wm, wo, wi, a*a, D);
+
+            return true;
+        }
 
     private:
         shared_ptr<texture> roughness;
@@ -170,5 +173,5 @@ class specular_CT : public material
         shared_ptr<texture> metalness;
         const vec3 wg = vec3(0,1,0);
 };
-*/
+
 #endif
