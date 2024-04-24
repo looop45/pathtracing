@@ -36,9 +36,10 @@ class cosine_pdf : public pdf
 
 class ggx_pdf : public pdf {
   public:
-    ggx_pdf(vec3& wo, double roughness)
+    ggx_pdf(vec3& wo, vec3 w, double roughness)
     {
-      this->wo = wo;
+      uvw.build_from_w(w);
+      this->wo = uvw.world_to_local(wo);
       double a = roughness * roughness;
       a2 = a * a;
     }
@@ -57,7 +58,7 @@ class ggx_pdf : public pdf {
     //pdf of ggx given importance sampling of NDF
     double value(const vec3 &wi) const override 
     {
-      //return (D_val * wgdotwm)/(4 * dot(wo, wm));
+      return (D_val * wgdotwm)/(4 * dot(wo, wm));
       return 1;
     }
 
@@ -75,16 +76,16 @@ class ggx_pdf : public pdf {
       wgdotwm = dot(wg, wm);
 
       //convert to cartesian
-      return wm;
+      return uvw.local_to_world(wm);
     }
 
   private:
-    const vec3 wg = vec3(0,1,0); //geometric normal
+    const vec3 wg = vec3(0,0,1); //geometric normal
     vec3 wm;
     vec3 wo;
     double a2; //roughness squared
     double D_val;
-
+    onb uvw;
     double wgdotwm = 0;
 
 };

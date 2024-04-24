@@ -26,6 +26,18 @@ color clamp(color c)
             {
                 out[2] = 1;
             }
+            if (c.x() < 0)
+            {
+                out[0] = 0.0;
+            }
+            if (c.y() < 0)
+            {
+                out[1] = 0.0;
+            }
+            if (c.z() < 0)
+            {
+                out[2] = 0.0;
+            }
 
             return out;
         }

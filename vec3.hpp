@@ -194,7 +194,7 @@ inline const vec3 spherical_to_cartesian(double theta, double phi)
     auto y = cos(theta);
     auto z = sin(theta) * sin(phi);
 
-    return vec3(x,y,z);
+    return vec3(x,z,y);
 }
 
 inline double maximize(vec3 v) 

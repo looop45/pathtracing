@@ -104,7 +104,7 @@ color sampler::ray_color(ray& r, int depth, hittable& world, hittable_list& ligh
         //scattered = ray(rec.p, mixed_pdf.generate());
         //auto pdf_val = mixed_pdf.value(scattered.direction());
         color next_ray = ray_color(srec.scattered_ray, depth-1, world, lights);
-        color scatter_color = (srec.attenuation * srec.brdf * next_ray) / srec.pdf_val;
+        color scatter_color = (srec.brdf * next_ray) / srec.pdf_val;
 
         return scatter_color + color_from_emission;
     }

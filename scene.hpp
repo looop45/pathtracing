@@ -17,10 +17,10 @@
 
 using namespace std;
 
-const int SAMPLES = 15;
+const int SAMPLES = 40;
 const int REFL_SAMPLES = 2;
 const int REFR_SAMPLES = 4;
-const int RAY_DEPTH = 5;
+const int RAY_DEPTH = 4;
 
 class scene
 {

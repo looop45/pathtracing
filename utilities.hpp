@@ -38,6 +38,21 @@ inline double random_centered_double()
     return distribution(generator);
 }
 
+inline double clamp(double in, double min, double max)
+{
+    if (in < min)
+    {
+        return min;
+    }
+
+    if (in > max)
+    {
+        return max;
+    }
+
+    return in;
+}
+
 //Common Headers
 #include "ray.hpp"
 #include "vec3.hpp"
