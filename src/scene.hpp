@@ -17,7 +17,7 @@
 
 using namespace std;
 
-const int SAMPLES = 10;
+const int SAMPLES = 60;
 const int REFL_SAMPLES = 2;
 const int REFR_SAMPLES = 1;
 const int RAY_DEPTH = 3;
