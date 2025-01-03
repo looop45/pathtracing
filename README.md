@@ -35,9 +35,7 @@ The renderer is multithreaded and makes use of a basic Bounding-Volume-Hierarchy
   
 
 ### Example Images
-
-  
-  
+<img src="examples/sphere.png" width="200"/> <img src="examples/cornell2.jpeg" width="200"/> <img src="examples/roughnessmetal.png" width="200"/> <img src="examples/test.png" width="200"/>
 
 ### Further Work
 
